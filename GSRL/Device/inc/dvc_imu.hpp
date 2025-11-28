@@ -148,6 +148,64 @@ private:
     bool selfTestGyro();
 };
 
+
+/**
+ * @brief H30系列 UART接口IMU类
+ * @details 适用于H30等使用YIS通讯协议的模块
+ */
+class H30 : public IMU
+{
+public:
+    // 错误码定义
+    enum ErrorCode : uint8_t {
+        NO_ERROR           = 0x00,
+        CHECKSUM_ERROR     = 0x01, // CK1/CK2校验失败
+        FRAME_HEAD_ERROR   = 0x02, // 帧头不是 0x59 0x53
+        FRAME_LENGTH_ERROR = 0x03, // 长度不符合预期
+        TIMEOUT_ERROR      = 0x04, // 超时未收到数据
+    };
+    
+    typedef void (*ErrorCallback)(ErrorCode errorCode); 
+
+    /**
+     * @brief 构造函数
+     * @param ahrs 姿态解算算法接口
+     * @param huart 串口句柄
+     * @param errorCallback 错误回调函数
+     */
+    H30(AHRS *ahrs, UART_HandleTypeDef *huart, ErrorCallback errorCallback = nullptr);
+
+    bool init() override;
+
+    /**
+     * @brief 数据接收回调处理
+     * @note 需要在 drv_uart 的回调函数中调用此方法
+     */
+    void onReceiveData(uint8_t *data, uint16_t length);
+
+protected:
+    void readRawData() override;
+    void dataCalibration() override;
+
+private:
+    UART_HandleTypeDef *m_huart;
+    ErrorCallback m_errorCallback;
+    ErrorCode m_errorCode;
+
+    // 协议常量
+    static constexpr uint8_t FRAME_HEAD_0 = 0x59;
+    static constexpr uint8_t FRAME_HEAD_1 = 0x53;
+    static constexpr uint8_t DATA_ID_ACCEL = 0x10;
+    static constexpr uint8_t DATA_ID_GYRO = 0x20;
+
+    // 接收缓冲区 
+    uint8_t m_rxBuffer[128]; 
+    uint16_t m_rxLength;
+
+    // 内部辅助函数
+    void handleError(ErrorCode errorCode);
+    bool validateChecksum(uint8_t *data, uint16_t len);
+};
 /* Exported constants --------------------------------------------------------*/
 
 /* Exported macro ------------------------------------------------------------*/
