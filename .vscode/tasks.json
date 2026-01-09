@@ -6,7 +6,7 @@
             "type": "shell",
             "command": "${command:eide.project.build}",
             "group": "build",
-            "problemMatcher": []
+            "problemMatcher": "$gcc"
         },
         {
             "label": "flash",

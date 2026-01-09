@@ -29,6 +29,7 @@
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
+typedef StaticTask_t osStaticThreadDef_t;
 /* USER CODE BEGIN PTD */
 
 /* USER CODE END PTD */
@@ -47,11 +48,16 @@
 /* USER CODE BEGIN Variables */
 
 /* USER CODE END Variables */
-/* Definitions for test */
-osThreadId_t testHandle;
-const osThreadAttr_t test_attributes = {
-  .name = "test",
-  .stack_size = 128 * 4,
+/* Definitions for chassis */
+osThreadId_t chassisHandle;
+uint32_t chassisBuffer[ 1024 ];
+osStaticThreadDef_t chassisControlBlock;
+const osThreadAttr_t chassis_attributes = {
+  .name = "chassis",
+  .cb_mem = &chassisControlBlock,
+  .cb_size = sizeof(chassisControlBlock),
+  .stack_mem = &chassisBuffer[0],
+  .stack_size = sizeof(chassisBuffer),
   .priority = (osPriority_t) osPriorityNormal,
 };
 
@@ -60,7 +66,7 @@ const osThreadAttr_t test_attributes = {
 
 /* USER CODE END FunctionPrototypes */
 
-void test_task(void *argument);
+void chassis_task(void *argument);
 
 extern void MX_USB_DEVICE_Init(void);
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
@@ -92,8 +98,8 @@ void MX_FREERTOS_Init(void) {
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
-  /* creation of test */
-  testHandle = osThreadNew(test_task, NULL, &test_attributes);
+  /* creation of chassis */
+  chassisHandle = osThreadNew(chassis_task, NULL, &chassis_attributes);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
@@ -105,24 +111,24 @@ void MX_FREERTOS_Init(void) {
 
 }
 
-/* USER CODE BEGIN Header_test_task */
+/* USER CODE BEGIN Header_chassis_task */
 /**
-  * @brief  Function implementing the test thread.
+  * @brief  Function implementing the chassis thread.
   * @param  argument: Not used
   * @retval None
   */
-/* USER CODE END Header_test_task */
-__weak void test_task(void *argument)
+/* USER CODE END Header_chassis_task */
+__weak void chassis_task(void *argument)
 {
   /* init code for USB_DEVICE */
   MX_USB_DEVICE_Init();
-  /* USER CODE BEGIN test_task */
+  /* USER CODE BEGIN chassis_task */
   /* Infinite loop */
   for(;;)
   {
     osDelay(1);
   }
-  /* USER CODE END test_task */
+  /* USER CODE END chassis_task */
 }
 
 /* Private application code --------------------------------------------------*/
